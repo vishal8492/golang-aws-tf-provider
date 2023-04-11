@@ -1,5 +1,5 @@
 # Running Locally 
-
+Go Version : 1.19.5
 # Dependencies 
 Get all dependencies with 
 ```go mod download```

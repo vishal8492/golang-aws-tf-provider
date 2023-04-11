@@ -21,6 +21,26 @@ var (
 	RoleArn = ""
 )
 
+// terraform
+const (
+	terraformVersion = "1.4.4"
+)
+
+// general
+const (
+	apply               = "apply"
+	destroy             = "destroy"
+	terraformWorkingDir = "terraform"
+)
+
+// AWS env variable keys
+const (
+	awsRegion       = "AWS_REGION"
+	awsAccessKey    = "AWS_ACCESS_KEY_ID"
+	awsSecretKey    = "AWS_SECRET_ACCESS_KEY"
+	awsSessionToken = "AWS_SESSION_TOKEN"
+)
+
 func init() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -72,7 +92,7 @@ func main() {
 	ctx := context.Background()
 
 	// Initial credentials loaded from SDK's default credential chain.
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -86,10 +106,10 @@ func main() {
 
 	installer := &releases.ExactVersion{
 		Product: product.Terraform,
-		Version: version.Must(version.NewVersion("1.4.4")),
+		Version: version.Must(version.NewVersion(terraformVersion)),
 	}
 
-	execPath, err := installer.Install(context.Background())
+	execPath, err := installer.Install(ctx)
 	if err != nil {
 		log.Fatalf("error installing Terraform: %s", err)
 	}
@@ -101,15 +121,14 @@ func main() {
 		log.Fatalf("use one of available commands apply/destroy")
 	}
 	switch commands[0] {
-	case "apply":
+	case apply:
 		// Provision sandbox infrastructure
-		vpcID := provisioner.Provision(ctx, tf)
+		err := provisioner.Provision(ctx, tf)
 		if err != nil {
 			fmt.Println("Failed to provision sandbox infrastructure:", err)
 			return
 		}
-		fmt.Println("Sandbox VPC ID:", vpcID)
-	case "destroy":
+	case destroy:
 		//Deprovision sandbox infrastructure
 		err = provisioner.Deprovision(ctx, tf)
 		if err != nil {
@@ -128,14 +147,14 @@ func setupEnv(ctx context.Context, creds *stscreds.AssumeRoleProvider, cfg aws.C
 	if err != nil {
 		log.Fatalf("error creating AWS session: %s", err)
 	}
-	os.Setenv("AWS_REGION", cfg.Region)
-	os.Setenv("AWS_ACCESS_KEY_ID", sess.AccessKeyID)
-	os.Setenv("AWS_SECRET_ACCESS_KEY", sess.SecretAccessKey)
-	os.Setenv("AWS_SESSION_TOKEN", sess.SessionToken)
+	os.Setenv(awsRegion, cfg.Region)
+	os.Setenv(awsAccessKey, sess.AccessKeyID)
+	os.Setenv(awsSecretKey, sess.SecretAccessKey)
+	os.Setenv(awsSessionToken, sess.SessionToken)
 }
 
 func getTerraformProvider(execPath string) library.Terraform {
-	provider, err := tfexec.NewTerraform("terraform", execPath)
+	provider, err := tfexec.NewTerraform(terraformWorkingDir, execPath)
 	provider.SetStdout(os.Stdout)
 	provider.SetStderr(os.Stdout)
 	if err != nil {
