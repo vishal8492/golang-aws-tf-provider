@@ -14,7 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
-	"provisioner/library"
+	"provisioner/src/library"
 )
 
 var (
