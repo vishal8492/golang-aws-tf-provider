@@ -39,6 +39,7 @@ Here's simple wildcard permissions for EC2 resource you can use.
 ```
 
 # Build command 
+Build from src directory. 
 ``` go build provisioner.go ```
 
 # Run command
