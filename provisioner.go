@@ -97,7 +97,9 @@ func main() {
 	tf := getTerraformProvider(execPath)
 
 	var provisioner Provisioner = &AWSProvisioner{}
-
+	if len(commands) == 0 {
+		log.Fatalf("use one of available commands apply/destroy")
+	}
 	switch commands[0] {
 	case "apply":
 		// Provision sandbox infrastructure
@@ -143,5 +145,7 @@ func getTerraformProvider(execPath string) library.Terraform {
 	if err != nil {
 		log.Fatalf("Failed to create Terraform client: %v", err)
 	}
+
 	return tf
+
 }
